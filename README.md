@@ -195,26 +195,24 @@ if (RootContext.HasInstance)
 
 ### Проблема
 
-Zenject долгое время был стандартом DI в Unity-проектах. Но он не совместим с актуальными версиями Unity, поддержка заброшена, а сообщество давно ищет замену.
+Zenject высоко ценится среди сообщества Unity-разработчиков, однако он перестал поддерживать современные версии Unity. Проекты, зависящие от Zenject, сталкиваются с проблемами совместимости, отсутствием поддержки и устаревшим фреймворком, который больше не развивается.
 
-**Reflex** — самый активно развивающийся и производительный DI-фреймворк для Unity на сегодняшний день. Но переход с Zenject означал полный переписывание всего installer-слоя и переобучение команды.
+Решение - **Reflex**: это наиболее активно поддерживаемый и производительный фреймворк внедрения зависимостей (DI) для Unity на сегодняшний день. Однако переход с Zenject означает переписывание всего слоя инсталлятора и переобучение команды.
 
 ### Решение
 
-**Zenjex** — это тонкий слой расширений поверх [Reflex 14.1.0](https://github.com/gustavopsantos/reflex), который добавляет привычный Zenject-like API. Команда продолжает писать так, как привыкла. Под капотом — современный Reflex.
-
-Кроме того, Zenjex решает реальное ограничение Reflex: **можно добавлять биндинги в контейнер даже после того, как он был создан** (`Build()`) — чего базовый Reflex не умеет.
+**Zenjex** - тонкий слой расширения поверх [Reflex 14.1.0](https://github.com/gustavopsantos/reflex), который привносит знакомый API Zenject в современный движок Reflex. Вы сохраняете синтаксис, известный вашей команде, и получаете все преимущества Reflex под капотом. Кроме того, Zenjex решает реальную проблему ограничения Reflex: теперь вы можете добавлять привязки в контейнер даже после того, как он уже построен - способность, которую базовая версия Reflex не предоставляет.
 
 ---
 
-### Возможности
+### Что внутри
 
-- **Zenject-style API** — `Bind<T>().To<TImpl>().AsSingle()` работает именно так, как вы ожидаете
-- **Регистрация после Build()** — добавляйте биндинги в существующий `Container` через `container.Bind<T>().FromInstance(...).AsSingle()`
-- **`BindInterfaces()` / `BindInterfacesAndSelf()`** — автоматическое связывание по интерфейсам, как в Zenject
-- **`AsSingle()` / `AsTransient()` / `AsScoped()` / `AsEagerSingleton()`** — полный контроль над временем жизни
-- **`ProjectRootInstaller`** — базовый MonoBehaviour для глобального DI с lifecycle-хуками
-- **`RootContext`** — статическая точка доступа к корневому контейнеру (для архитектур с GameInstance-синглтоном)
+- **Zenject-style API** — `Bind<T>().To<TImpl>().AsSingle()` работает ровно так, как вы к этому привыкли
+- **Регистрация после `Build()`** — добавляйте зависимости в уже готовый `Container` через `container.Bind<T>().FromInstance(...).AsSingle()`
+- **`BindInterfaces()` / `BindInterfacesAndSelf()`** — автоматическая привязка по интерфейсам, как в Zenject
+- **`AsSingle()` / `AsTransient()` / `AsScoped()` / `AsEagerSingleton()`** — полный контроль над временем жизни объекта
+- **`ProjectRootInstaller`** — базовый `MonoBehaviour` для глобальной настройки DI с хуками жизненного цикла
+- **`RootContext`** — статический доступ к корневому контейнеру для архитектур с GameInstance-синглтоном
 - **Основан на Reflex 14.1.0** — полная поддержка IL2CPP, source generators, scoped-контейнеры
 
 ---
@@ -223,14 +221,14 @@ Zenject долгое время был стандартом DI в Unity-прое
 
 ```
 src/
-├── Reflex/              ← Reflex 14.1.0 (без изменений)
+├── Reflex/              ← Reflex 14.1.0 (не изменён)
 └── ReflexExtensions/    ← расширения Zenjex
-    ├── BindingBuilder.cs              ← Fluent API для ContainerBuilder (фаза настройки)
-    ├── ContainerBindingBuilder.cs     ← Fluent API для Container (регистрация после Build)
-    ├── ReflexZenjectExtensions.cs     ← Bind<T>() extension-метод на ContainerBuilder
-    ├── ContainerZenjectExtensions.cs  ← Bind<T>() extension-метод на готовом Container
+    ├── BindingBuilder.cs              ← Fluent API для ContainerBuilder (фаза сборки)
+    ├── ContainerBindingBuilder.cs     ← Fluent API для уже собранного Container
+    ├── ReflexZenjectExtensions.cs     ← Bind<T>() как метод расширения на ContainerBuilder
+    ├── ContainerZenjectExtensions.cs  ← Bind<T>() как метод расширения на готовом Container
     ├── ProjectRootInstaller.cs        ← Базовый MonoBehaviour для глобального DI
-    └── RootContext.cs                 ← Статический резолвер для паттерна GameInstance
+    └── RootContext.cs                 ← Статический доступ к корневому контейнеру
 ```
 
 ---
@@ -238,17 +236,17 @@ src/
 ### Установка
 
 1. Скопируйте папку `Reflex` в ваш Unity-проект
-2. Скопируйте папку `ReflexExtensions` в любое место проекта
+2. Скопируйте папку `ReflexExtensions` в любое удобное место в проекте
 
-Далее следуйте стандартной настройке Reflex из [официального репозитория](https://github.com/gustavopsantos/reflex) (создайте `ProjectScope`, настройте scene scopes и т.д.).
+Дальнейшая настройка — стандартная для Reflex, смотрите [официальный репозиторий](https://github.com/gustavopsantos/reflex) (создайте `ProjectScope`, настройте scene scopes и т.д.).
 
-> **Известный баг:** TreeView-окно дебаггера в Reflex недоработано автором — редакторская панель отладки может работать некорректно. Это upstream-проблема Reflex, не Zenjex.
+> **Известный баг:** окно дебаггера с TreeView в Reflex недоработано автором фреймворка — редакторская панель отладки может вести себя некорректно. Это проблема Reflex, а не Zenjex.
 
 ---
 
 ### Использование
 
-#### 1. Настройка биндингов (ContainerBuilder)
+#### 1. Регистрация зависимостей (ContainerBuilder)
 
 ```csharp
 public class GameInstaller : ProjectRootInstaller
@@ -258,22 +256,22 @@ public class GameInstaller : ProjectRootInstaller
         // Интерфейс → реализация, синглтон
         builder.Bind<ISceneLoader>().To<SceneLoader>().AsSingle();
 
-        // Привязать по всем интерфейсам конкретного типа
+        // Зарегистрировать по всем интерфейсам конкретного типа
         builder.Bind<PlayerProvider>().BindInterfaces().AsSingle();
 
-        // Привязать по интерфейсам И по самому конкретному типу
+        // Зарегистрировать по интерфейсам и по самому типу
         builder.Bind<PlayerProvider>().BindInterfacesAndSelf().AsSingle();
 
-        // Transient — новый экземпляр при каждом резолве
+        // Transient — новый объект при каждом запросе
         builder.Bind<IEnemyFactory>().To<EnemyFactory>().AsTransient();
 
-        // Eager singleton — создаётся сразу при Build()
+        // Eager singleton — создаётся сразу при Build(), не по запросу
         builder.Bind<IEventBus>().To<EventBus>().AsEagerSingleton();
 
-        // Из готового экземпляра
+        // Из готового объекта
         builder.Bind<ICoroutineRunner>().FromInstance(_myMonoBehaviour).AsSingle();
 
-        // Условный биндинг по платформе
+        // Условная регистрация по платформе
         if (Application.platform != RuntimePlatform.Android)
             builder.Bind<IInputService>().To<PCInputService>().AsSingle();
         else
@@ -282,18 +280,18 @@ public class GameInstaller : ProjectRootInstaller
 }
 ```
 
-#### 2. Регистрация после Build() (на существующем Container)
+#### 2. Регистрация в уже собранном контейнере
 
-Уникальная возможность Zenjex — в чистом Reflex это недоступно.
+Это уникальная возможность Zenjex — в чистом Reflex так сделать нельзя.
 
 ```csharp
-// GameInstance создаётся асинхронно ПОСЛЕ того, как контейнер уже построен
+// GameInstance создаётся асинхронно, уже ПОСЛЕ того как контейнер собран
 public override IEnumerator InstallGameInstanceRoutine()
 {
     yield return InstallerFactory.CreateGameInstanceRoutine(instance =>
         _gameInstance = instance);
 
-    // Добавляем GameInstance в уже построенный контейнер
+    // Добавляем GameInstance в уже готовый контейнер
     RootContainer.Bind<GameInstance>()
         .FromInstance(_gameInstance)
         .BindInterfacesAndSelf()
@@ -308,24 +306,24 @@ public class GameInstaller : ProjectRootInstaller
 {
     private GameInstance _gameInstance;
 
-    // Шаг 1: Регистрируем все сервисы в ContainerBuilder
+    // Шаг 1: регистрируем все сервисы
     public override void InstallBindings(ContainerBuilder builder) { ... }
 
-    // Шаг 2: Асинхронная рутина — создаём объекты с задержкой, добавляем в контейнер
+    // Шаг 2: создаём объекты, которые появляются позже, и добавляем их в контейнер
     public override IEnumerator InstallGameInstanceRoutine()
     {
         yield return InstallerFactory.CreateGameInstanceRoutine(i => _gameInstance = i);
         RootContainer.Bind<GameInstance>().FromInstance(_gameInstance).BindInterfacesAndSelf().AsSingle();
     }
 
-    // Шаг 3: Всё готово — запускаем игру
+    // Шаг 3: всё готово, запускаем игру
     public override void LaunchGame() => _gameInstance.LaunchGame();
 }
 ```
 
-#### 4. RootContext — резолв без инъекции
+#### 4. RootContext — получить зависимость без инъекции
 
-Для случаев, когда класс не может получить зависимость через конструктор или `[Inject]` (например, GameInstance-синглтон, которому нужны сервисы уже после завершения DI):
+Бывают случаи, когда класс не может получить зависимость через конструктор или `[Inject]` — например, GameInstance-синглтон, которому нужны сервисы уже после того как DI завершился:
 
 ```csharp
 private void ResolveDependencies()
@@ -340,26 +338,26 @@ if (RootContext.HasInstance)
 
 ---
 
-### Справочник по времени жизни
+### Время жизни объектов
 
 | Метод | Время жизни | Примечание |
 |---|---|---|
 | `AsSingle()` | Singleton | Псевдоним для `AsSingleton()` |
-| `AsSingleton()` | Singleton | Один экземпляр на весь контейнер |
-| `AsTransient()` | Transient | Новый экземпляр при каждом резолве |
-| `AsScoped()` | Scoped | Один экземпляр на scope |
-| `AsEagerSingleton()` | Singleton (Eager) | Создаётся сразу при `Build()` |
+| `AsSingleton()` | Singleton | Один объект на весь контейнер |
+| `AsTransient()` | Transient | Новый объект при каждом запросе |
+| `AsScoped()` | Scoped | Один объект на scope |
+| `AsEagerSingleton()` | Singleton (Eager) | Создаётся сразу при `Build()`, не по запросу |
 
 ---
 
-### Ключевые отличия от чистого Reflex
+### Отличия от чистого Reflex
 
 | Возможность | Чистый Reflex | Zenjex |
 |---|---|---|
-| Fluent API биндинга | `builder.AddSingleton<T>()` | `builder.Bind<T>().To<TImpl>().AsSingle()` |
-| Регистрация после Build() | ❌ Не поддерживается | ✅ `container.Bind<T>().FromInstance(x).AsSingle()` |
+| Fluent API регистрации | `builder.AddSingleton<T>()` | `builder.Bind<T>().To<TImpl>().AsSingle()` |
+| Регистрация после `Build()` | ❌ Недоступно | ✅ `container.Bind<T>().FromInstance(x).AsSingle()` |
 | Автопривязка по интерфейсам | Вручную | `BindInterfaces()` / `BindInterfacesAndSelf()` |
-| Паттерн GameInstance | Требует ручной реализации | Встроен: `ProjectRootInstaller` + `RootContext` |
+| Паттерн GameInstance | Нужно реализовывать самому | Готово: `ProjectRootInstaller` + `RootContext` |
 
 ---
 
